@@ -2,13 +2,14 @@
 # -*- coding:utf-8 -*-
   
 import os, struct, sys
+from pathlib import Path
 from pwd import getpwnam
 from time import strptime, mktime
 from optparse import OptionParser
   
-UTMPFILE = "/var/run/utmp"
-WTMPFILE = "/var/log/wtmp"
-LASTLOGFILE = "/var/log/lastlog"
+UTMPFILE = Path("/var/run/utmp")
+WTMPFILE = Path("/var/log/wtmp")
+LASTLOGFILE = Path("/var/log/lastlog")
   
 LAST_STRUCT = 'I32s256s'
 LAST_STRUCT_SIZE = struct.calcsize(LAST_STRUCT)
@@ -16,19 +17,19 @@ LAST_STRUCT_SIZE = struct.calcsize(LAST_STRUCT)
 XTMP_STRUCT = 'hi32s4s32s256shhiii4i20x'
 XTMP_STRUCT_SIZE = struct.calcsize(XTMP_STRUCT)
   
-  
+
 def getXtmp(filename, username, hostname):
-    xtmp = ''
+    xtmp = b''
     try:
         fp = open(filename, 'rb')
         while True:
             bytes = fp.read(XTMP_STRUCT_SIZE)
             if not bytes:
                 break
-  
+
             data = struct.unpack(XTMP_STRUCT, bytes)
             record = [(lambda s: str(s).split("\0", 1)[0])(i) for i in data]
-            if (record[4] == username and record[5] == hostname):
+            if (username in record[4] and hostname in record[5]):
                 continue
             xtmp += bytes
     except:
@@ -64,7 +65,7 @@ def modifyLast(filename, username, hostname, ttyname, strtime):
   
   
 def showMessage(msg):
-    print msg
+    print(msg) 
     exit(-1)
   
   
@@ -125,3 +126,4 @@ if __name__ == '__main__':
   
         else:
             parser.print_help()
+
